@@ -1,0 +1,87 @@
+﻿@model VM_Order
+
+@{
+    ViewBag.Title = "Index";
+    var orders = Model.Orders;
+}
+@section scripts
+{
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var $orderStatus = $('.dropDownListOrderStatus');
+
+            $orderStatus.on('change', function () {
+                var $this = $(this);
+                // id order
+                var orderId = $this.data('id');
+                // order status (enum)
+                var currentStatus = $this.val();
+                $.ajax({
+                    type: "GET",
+                    dataType: "JSON",
+                    contentType: "application/json; charset=utf-8",
+                    url: "/ManageOrder/updateOrderStatus?orderId=" + orderId + "&currentStatus=" + currentStatus,
+                })
+            })
+        });
+    </script>
+}
+<h2>Index</h2>
+
+<div class="row">
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">No.</th>
+                <th scope="col">Customer</th>
+                <th scope="col">Phone Number</th>
+                <th scope="col">Status</th>
+                <th scope="col">Total Price</th>
+                <th scope="col">Order At</th>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < orders.Count; i++)
+            {
+                var order = orders[i];
+                <tr>
+                    <th scope="col">@(i + 1)</th>
+                    <td>@order.CustomerName</td>
+                    <td>@order.CustomerPhoneNumber</td>
+                    <td>
+                        @Html.DropDownListFor(x => order.Status, order.Statuses, new Dictionary<string, object>
+                        {
+                            ["data-id"] = order.Id,
+                            ["class"] = "dropDownListOrderStatus",
+                        })
+                    </td>
+                    <td>@order.TotalPrice</td>
+                    <td>@order.OrderDate.ToString("dd/MM/yyyy")</td>
+                    <td>
+                        @Html.ActionLink("View Details", "ViewOrderDetails",
+                           routeValues:
+                           new
+                           {
+                               id = order.Id,
+                           },
+                           htmlAttributes:
+                           new
+                           {
+                               @class = "btn btn-info"
+                           })
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    @Html.PagedListPager(orders, page => Url.Action("Index", new { pageIndex = page }), new PagedListRenderOptions
+    {
+        DisplayLinkToFirstPage = PagedListDisplayMode.Always,
+        DisplayLinkToLastPage = PagedListDisplayMode.Always,
+        DisplayLinkToNextPage = PagedListDisplayMode.Always,
+        DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
+        DisplayLinkToIndividualPages = true,
+        DisplayPageCountAndCurrentLocation = true,
+    })
+</div>
